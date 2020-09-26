@@ -7,6 +7,9 @@ import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
 import TabOneScreen from '../screens/TabOneScreen';
 import TabTwoScreen from '../screens/TabTwoScreen';
+import Profile from '../screens/Profile';
+import Item from '../screens/Item';
+import Events from '../screens/Events';
 import { BottomTabParamList, TabOneParamList, TabTwoParamList } from '../types';
 
 const BottomTab = createBottomTabNavigator<BottomTabParamList>();
@@ -19,15 +22,29 @@ export default function BottomTabNavigator() {
       initialRouteName="TabOne"
       tabBarOptions={{ activeTintColor: Colors[colorScheme].tint }}>
       <BottomTab.Screen
-        name="TabOne"
+        name="Карта"
         component={TabOneNavigator}
         options={{
           tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
         }}
       />
       <BottomTab.Screen
-        name="TabTwo"
+        name="Оплата"
         component={TabTwoNavigator}
+        options={{
+          tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
+        }}
+      />
+      <BottomTab.Screen
+        name="Евенты"
+        component={TabEvent}
+        options={{
+          tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
+        }}
+      />
+      <BottomTab.Screen
+        name="Профиль"
+        component={TabProfile}
         options={{
           tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
         }}
@@ -52,7 +69,12 @@ function TabOneNavigator() {
       <TabOneStack.Screen
         name="TabOneScreen"
         component={TabOneScreen}
-        options={{ headerTitle: 'Tab One Title' }}
+        options={{ headerShown: false }}
+      />
+      <TabOneStack.Screen
+        name="Item"
+        component={Item}
+        options={{ headerShown: true }}
       />
     </TabOneStack.Navigator>
   );
@@ -66,8 +88,37 @@ function TabTwoNavigator() {
       <TabTwoStack.Screen
         name="TabTwoScreen"
         component={TabTwoScreen}
-        options={{ headerTitle: 'Tab Two Title' }}
+        options={{ headerTitle: 'Оплата' }}
       />
     </TabTwoStack.Navigator>
   );
 }
+
+const TabProfTabProfile = createStackNavigator<TabTwoParamList>();
+
+function TabProfile() {
+  return (
+    <TabProfTabProfile.Navigator>
+      <TabProfTabProfile.Screen
+        name="Profile"
+        component={Profile}
+        options={{ headerShown: false }}
+      />
+    </TabProfTabProfile.Navigator>
+  );
+}
+
+const EventsTab = createStackNavigator<TabTwoParamList>();
+
+function TabEvent() {
+  return (
+    <EventsTab.Navigator>
+      <EventsTab.Screen
+        name="Events"
+        component={Events}
+        options={{ headerShown: true }}
+      />
+    </EventsTab.Navigator>
+  );
+}
+

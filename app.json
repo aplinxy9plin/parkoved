@@ -21,6 +21,14 @@
     "ios": {
       "supportsTablet": true
     },
+    "android": {
+      "package": "com.aplinnikita.compliment",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyChyzYA2kvRZZBDGrHFZStFt4U3uymE0Lc"
+        }
+      }
+    },
     "web": {
       "favicon": "./assets/images/favicon.png"
     }

@@ -15,3 +15,8 @@ export type TabOneParamList = {
 export type TabTwoParamList = {
   TabTwoScreen: undefined;
 };
+
+declare module "*.png" {
+  const value: any;
+  export = value;
+}

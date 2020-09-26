@@ -3,11 +3,14 @@ import { Image, Text, View, Alert } from 'react-native'
 import MapView, { Marker } from 'react-native-maps'
 import * as Location from 'expo-location';
 import mapStyle from '../mapStyle.json'
+import { FAB, DataTable, Avatar, Card, Button, Paragraph, List, Dialog, Divider } from 'react-native-paper'
 
 export class TabOneScreen extends Component {
   state = {
     userLocation: null,
-    maxZoom: 10
+    maxZoom: 10,
+    visible: false,
+    filters: ['Аттракцион', 'Туалет', 'Другое']
   }
 
   async componentDidMount() {
@@ -24,13 +27,22 @@ export class TabOneScreen extends Component {
         lng: location.coords.longitude
       }
     })
-    fetch("http://192.168.43.113:3000/park/get/5f6e3a8edc9b8814bb1b6a63")
+    fetch("http://192.168.43.113:3000/park/getall")
+    .then(response => response.json())
+    .then(data => {
+      this.setState({ visible: true, parks: data.result })
+    })
+  }
+  
+
+  load = (id) => {
+    fetch("http://192.168.43.113:3000/park/get/"+id)
     .then(response => response.json())
     .then(data => {
       console.log(data)
       if(data.type === 'ok'){
         const center = this.getCenter(data.result.map.coordinates)
-        fetch("http://192.168.43.113:3000/park/getItems/5f6e3a8edc9b8814bb1b6a63")
+        fetch("http://192.168.43.113:3000/park/getItems/"+id)
         .then(response => response.json())
         .then(data => {
           console.log(data)
@@ -43,8 +55,10 @@ export class TabOneScreen extends Component {
                 lng: center[1]
               },
               maxZoom: 17,
-              items: data.result
+              items: data.result,
+              mainItems: data.result,
             })
+            this.refs.map.fitToElements(true);
           }
         })
         .catch(err => {
@@ -71,16 +85,58 @@ export class TabOneScreen extends Component {
     return [(minX + maxX) / 2, (minY + maxY) / 2];
   }
 
+  checkFilter = (name) => {
+    let { filters, mainItems } = this.state
+    if(filters.indexOf(name) !== -1){
+      filters.splice(filters.indexOf(name), 1)
+    }else{
+      filters.push(name)      
+    }
+    console.log(filters);
+    this.setState({
+      items: mainItems.filter((item) => filters.indexOf(item.type) !== -1),
+      filters
+    })
+  }
+
   render() {
     const {
       userLocation,
       maxZoom,
       park,
-      items
+      items,
+      visible,
+      parks,
+      filter,
+      filters,
     } = this.state
     return (
       <View>
+        <FAB.Group
+          style={{ zIndex: 100000000000 }}
+          open={filter}
+          icon={filter ? 'close' : 'filter'}
+          actions={[
+            {
+              icon: filters.indexOf('Аттракцион') !== -1 ? 'check' : '',
+              label: 'Аттракцион',
+              onPress: () => this.checkFilter('Аттракцион'),
+            },
+            {
+              icon: filters.indexOf('Туалет') !== -1 ? 'check' : '',
+              label: 'Туалет',
+              onPress: () => this.checkFilter('Туалет'),
+            },
+            {
+              icon: filters.indexOf('Другое') !== -1 ? 'check' : '',
+              label: 'Другое',
+              onPress: () => this.checkFilter('Другое'),
+            },
+          ]}
+          onStateChange={({open}) => this.setState({ filter: open })}
+        />
         <MapView
+          ref="map"
           customMapStyle={mapStyle}
           style={{
             width: '100%',
@@ -129,6 +185,23 @@ export class TabOneScreen extends Component {
              )
           }
         </MapView>
+        <Dialog visible={visible} onDismiss={() => this.setState({ visible: false })}>
+          <Dialog.Title>Привет!</Dialog.Title>
+          <Dialog.Content>
+            <Paragraph>Я Парковед!{'\n'}И я нашел парочку прекрасных парков неподалеку.{'\n\n'}Выбери парк и я покажу его карту</Paragraph>
+            <Divider />
+            {
+              parks && (
+                parks.map((item) => 
+                  <List.Item
+                    title={item.name}
+                    onPress={() => this.load(item.id)}
+                  />
+                )
+              )
+            }
+          </Dialog.Content>
+        </Dialog>
       </View>
     )
   }

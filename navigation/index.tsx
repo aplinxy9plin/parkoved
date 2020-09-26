@@ -1,7 +1,7 @@
 import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import * as React from 'react';
-import { ColorSchemeName } from 'react-native';
+import { AsyncStorage, ColorSchemeName } from 'react-native';
 
 import NotFoundScreen from '../screens/NotFoundScreen';
 import { RootStackParamList } from '../types';
@@ -15,15 +15,25 @@ import TourLinking from './TourLinking';
 // "Fundamentals" guide: https://reactnavigation.org/docs/getting-started
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   const [user_id, setuser_id] = React.useState(null)
-  React.useEffect(() => {
-    console.log(228);
+  React.useEffect(async () => {
+    if(await AsyncStorage.getItem("user_id")){
+      setuser_id(true)
+    }
   }, [])
-  if(user_id){
+  if(!user_id){
     return (
       <NavigationContainer
         linking={TourLinking}
         theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <TourNavigator />
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Root">
+              {props => <Auth {...props} setuser_id={async (insertedId) => {
+                await AsyncStorage.setItem("user_id", insertedId)
+                setuser_id(insertedId)
+              }} />}
+          </Stack.Screen>
+          <Stack.Screen name="AuthVK" component={AuthVK} options={{ headerShown: true }}/>
+        </Stack.Navigator>
       </NavigationContainer>
     );
   }else{
@@ -50,11 +60,11 @@ function RootNavigator() {
   );
 }
 
-function TourNavigator() {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Root" component={Auth} />
-      <Stack.Screen name="AuthVK" component={AuthVK} options={{ headerShown: true }}/>
-    </Stack.Navigator>
-  );
-}
+// function TourNavigator() {
+//   return (
+//     <Stack.Navigator screenOptions={{ headerShown: false }}>
+//       <Stack.Screen name="Root" component={Auth} />
+//       <Stack.Screen name="AuthVK" component={AuthVK} options={{ headerShown: true }}/>
+//     </Stack.Navigator>
+//   );
+// }

@@ -12,8 +12,8 @@ export default function TabOneScreen({ navigation, route, setuser_id}) {
   const [visible, setvisible] = React.useState(false)
   const [age, setage] = React.useState(null)
 
-  React.useEffect(() => {
-    navigation.addListener('focus', async () => {
+  React.useEffect(async () => {
+      navigation.addListener('focus', async () => {
       const vk_data = await AsyncStorage.getItem("vk_data")
       if(vk_data){
         setstate(parseInt(vk_data))

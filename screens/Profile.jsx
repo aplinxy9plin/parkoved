@@ -1,6 +1,9 @@
 import React, { Component } from 'react'
 import { Text, View, Alert, AsyncStorage } from 'react-native'
-import { Title, DataTable, Avatar, Card, Button, Paragraph, Portal, Dialog } from 'react-native-paper'
+import { Title, DataTable, Avatar, Card, Button, Paragraph, Portal, Dialog, Headline, Subheading } from 'react-native-paper'
+import moment from 'moment';
+import 'moment/locale/ru'
+moment.locale('ru')
 
 export class Profile extends Component {
   state = {
@@ -26,6 +29,27 @@ export class Profile extends Component {
     })
   }
   
+  pay = async e => {
+    fetch("http://192.168.43.113:3000/pay/up", {
+      "method": "POST",
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": JSON.stringify({
+        "id": await AsyncStorage.getItem('user_id'),
+        "money": e
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      this.setState({ visible: false })
+      this.load()
+    })
+    .catch(err => {
+      console.error(err);
+    });
+  }
+
   render() {
     const { visible, user } = this.state
     return (
@@ -43,30 +67,18 @@ export class Profile extends Component {
                 <Title>Привет, {user.name}!</Title>
               </View>
               <View style={{marginTop: 20 }}>
-                <Card>
+                <Card style={{ zIndex: 1 }}>
                   <Card.Title title={user._id} subtitle={`Баланс: ${Number(user.money)}₽`} />
-                  <Card.Actions>
-                    <Button onPress={() => {
-                      this.setState({ visible: true })
-                      // Alert.alert(
-                      //   "Alert Title",
-                      //   "My Alert Msg",
-                      //   [
-                      //     {
-                      //       text: "Cancel",
-                      //       onPress: () => console.log("Cancel Pressed"),
-                      //       style: "cancel"
-                      //     },
-                      //     { text: "OK", onPress: () => console.log("OK Pressed") },
-                      //     { text: "OK", onPress: () => console.log("OK Pressed") },
-                      //     { text: "OK", onPress: () => console.log("OK Pressed") },
-                      //     { text: "OK", onPress: () => console.log("OK Pressed") },
-                      //     { text: "OK", onPress: () => console.log("OK Pressed") },
-                      //   ],
-                      //   { cancelable: false }
-                      // );
-                    }}>Пополнить</Button>
-                  </Card.Actions>
+                  <Card.Content>
+                    <Subheading>Пополнить на</Subheading>
+                    <View style={{flexDirection:'row', flexWrap:'wrap' }}>
+                      <Button mode="contained" style={{ margin: 5 }} onPress={() => this.pay(300)}>300₽</Button>
+                      <Button mode="contained" style={{ margin: 5 }} onPress={() => this.pay(500)}>500₽</Button>
+                      <Button mode="contained" style={{ margin: 5 }} onPress={() => this.pay(1000)}>1000₽</Button>
+                      <Button mode="contained" style={{ margin: 5 }} onPress={() => this.pay(2000)}>2000₽</Button>
+                      <Button mode="contained" style={{ margin: 5 }} onPress={() => this.pay(5000)}>5000₽</Button>
+                    </View>
+                  </Card.Content>
                 </Card>
               </View>
               <Card style={{ marginTop: 30 }}>
@@ -77,42 +89,33 @@ export class Profile extends Component {
                   <DataTable.Title>Цена</DataTable.Title>
                   <DataTable.Title>Дата</DataTable.Title>
                 </DataTable.Header>
-
-                <DataTable.Row>
-                  <DataTable.Cell>Колесо обозрения</DataTable.Cell>
-                  <DataTable.Cell>150</DataTable.Cell>
-                  <DataTable.Cell>14:12 26.09.20</DataTable.Cell>
-                </DataTable.Row>
-                <DataTable.Row>
-                  <DataTable.Cell>Колесо обозрения</DataTable.Cell>
-                  <DataTable.Cell>150</DataTable.Cell>
-                  <DataTable.Cell>14:15 26.09.20</DataTable.Cell>
-                </DataTable.Row>
-                <DataTable.Row>
-                  <DataTable.Cell>Колесо обозрения</DataTable.Cell>
-                  <DataTable.Cell>200</DataTable.Cell>
-                  <DataTable.Cell>14:18 26.09.20</DataTable.Cell>
-                </DataTable.Row>
-                <DataTable.Row>
-                  <DataTable.Cell>Туалет</DataTable.Cell>
-                  <DataTable.Cell>20</DataTable.Cell>
-                  <DataTable.Cell>14:30 26.09.20</DataTable.Cell>
-                </DataTable.Row>
+                {
+                  user.pays && (
+                    user.pays.map((item) => 
+                      <DataTable.Row>
+                        <DataTable.Cell>{item.name}</DataTable.Cell>
+                        <DataTable.Cell>{item.price}</DataTable.Cell>
+                        <DataTable.Cell>{moment(new Date(item.date)).format("DD.M.YY, h:mm")}</DataTable.Cell>
+                      </DataTable.Row>
+                    )
+                  )
+                }
               </DataTable>
               </Card>
               {/* <Portal> */}
-                <Dialog visible={visible} onDismiss={() => this.setState({ visible: false })}>
-                  <Dialog.Content>
-                    <Button onPress={this.pay}>300₽</Button>
-                    <Button onPress={this.pay}>500₽</Button>
-                    <Button onPress={this.pay}>1000₽</Button>
-                    <Button onPress={this.pay}>2000₽</Button>
-                  </Dialog.Content>
-                </Dialog>
               {/* </Portal> */}
             </View>
           )
         }
+        <Dialog visible={visible} onDismiss={() => this.setState({ visible: false })} style={{ zIndex: 10000000000 }}>
+          <Dialog.Content>
+            <Title>Пополнить баланс на:</Title>
+            <Button onPress={() => this.pay(300)}>300₽</Button>
+            <Button onPress={() => this.pay(500)}>500₽</Button>
+            <Button onPress={() => this.pay(1000)}>1000₽</Button>
+            <Button onPress={() => this.pay(2000)}>2000₽</Button>
+          </Dialog.Content>
+        </Dialog>
       </View>
     )
   }
